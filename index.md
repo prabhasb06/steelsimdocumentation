@@ -99,28 +99,32 @@ npm run dev
 ## System Architecture
 
 <pre class="mermaid">
-graph TB
+flowchart TB
     subgraph Browser ["Client (React 19 / TypeScript)"]
-        Builder["Plant Builder<br/>React Flow Canvas<br/>Typed Industrial Ports"]
-        Control["Control Center<br/>Dynamic PFD<br/>Live KPI Summary"]
-        ACAMISUI["ACAMIS Console<br/>Monitoring & Plan<br/>Impact Deck & Chat"]
-        Guard["Telemetry Guard<br/>Monotonic Version Check"]
+        direction LR
+        Guard["Telemetry Guard<br/>• Monotonic Version Check<br/>• Schema Validation"]
+        Builder["Plant Builder<br/>• React Flow Canvas<br/>• Typed Industrial Ports"]
+        ACAMISUI["ACAMIS Console<br/>• Monitoring & Plan<br/>• Impact Deck & Chat"]
+        Control["Control Center<br/>• Dynamic PFD<br/>• Live KPI Summary"]
     end
 
     subgraph Server ["Backend (Python / FastAPI)"]
-        Validator["Topology Validator<br/>Port & Utility Checks"]
-        SimManager["Simulation Manager<br/>Lifecycle State Machine"]
-        Engine["Deterministic Engine<br/>Tick Loop (1s)<br/>Flow & Interlocks"]
-        ACAMISCore["ACAMIS Core<br/>Rolling Detector (Task 3.1)<br/>6 Specialist Evaluators<br/>Policy Gates & Audit"]
+        direction LR
+        Validator["Topology Validator<br/>• Port & Utility Checks"]
+        SimManager["Simulation Manager<br/>• Lifecycle State Machine"]
+        Engine["Deterministic Engine<br/>• Tick Loop (1s)<br/>• Flow & Interlocks"]
+        ACAMISCore["ACAMIS Core<br/>• Rolling Detector (Task 3.1)<br/>• 6 Specialist Evaluators"]
     end
 
     Builder -->|POST /api/plant/validate| Validator
     Builder -->|POST /api/simulations| SimManager
-    Control -->|POST /api/simulations/:id/command| SimManager
+    Control -->|POST command| SimManager
     ACAMISUI -->|REST API| ACAMISCore
+
     SimManager --> Engine
     Engine --> ACAMISCore
-    Engine -->|WebSocket Stream & HTTP Poll| Guard
+
+    Engine -->|WebSocket Stream<br/>& HTTP Poll| Guard
     Guard --> Control
     Guard --> ACAMISUI
 </pre>
